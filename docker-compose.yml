@@ -1,0 +1,56 @@
+version: "3.4"
+services:
+  rstudio:
+    build:
+     context: ./
+     dockerfile: ./dockerfiles/dockerfile-rstudio
+     args:
+      R_VERSION: ${R_VERSION}
+    container_name: ${CONTAINER_NAME_RSTUDIO}
+    environment:
+     - USERID=${PUID}
+     - GROUPID=${PGID}
+       #- USER=${USER}
+     - DISABLE_AUTH=true
+     - ROOT=true
+    ports:
+     - ${RSTUDIO_PORT}:8787
+    volumes:
+     - ${WORKSPACE_PATH}:/home/rstudio
+    profiles: ["rstudio", "r", "all"]
+  vscode:
+    container_name: ${CONTAINER_NAME_VSCODE}
+    build:
+      context: ./
+      dockerfile: ./dockerfiles/dockerfile-vscode
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - PASSWORD=${PASSWORD}
+      - SUDO_PASSWORD=${SUDO_PASSWORD}
+      - INSTALL_EXTENSIONS=true
+    ports:
+      - ${CODE_SERVER_PORT}:8443
+    volumes:
+      - ${WORKSPACE_PATH}:/config/workspace
+      - ${APPDATA_PATH}:/config
+      - ./scripts/install_extensions.sh:/config/custom-cont-init.d/install_extensions.sh
+    profiles: ["r", "development", "all", "python"]
+  jupyter:
+    user: root
+    image: jupyter/scipy-notebook
+    environment:
+     - NB_USER=${USER}
+     - NB_UID=${PUID}
+     - NB_GID=${PGID}
+     - NB_GROUP=development
+     - JUPYTER_LAB_ENABLE=yes
+     - CHOWN_HOME=yes
+    ports:
+     - ${JUPYTER_PORT}:8989
+    volumes:
+     - ${WORKSPACE_PATH}:/home/${USER}/work
+    profiles: ["python", "all", "jupyter"]
+    command: ["start-notebook.sh","--port=8989","--allow-root", "--NotebookApp.password='sha1:f217aa434731:b01a46c5ffccfc413ccffc33c802882737ac2ccd'"] 
+

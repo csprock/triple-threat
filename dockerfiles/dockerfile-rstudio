@@ -1,0 +1,11 @@
+ARG R_VERSION
+
+FROM rocker/tidyverse:${R_VERSION}
+
+COPY ./scripts/install_script.sh /tmp/install_script.sh
+RUN sh /tmp/install_script.sh && rm /tmp/install_script.sh
+
+COPY ./scripts/install-r-packages.sh /tmp/install-r-packages.sh
+RUN sh /tmp/install-r-packages.sh && rm /tmp/install-r-packages.sh
+
+
